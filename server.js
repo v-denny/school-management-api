@@ -19,9 +19,10 @@ async function start() {
       console.log(`   http://localhost:${PORT}`);
     });
   } catch (err) {
-    console.error('❌ Failed to start server:', err.message);
-    process.exit(1);
-  }
+  console.error('❌ Failed to start server:', err.message || err.code || err);
+  console.error(err); // log full error object
+  process.exit(1);
+}
 }
 
 start();

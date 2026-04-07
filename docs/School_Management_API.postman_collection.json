@@ -1,0 +1,169 @@
+{
+  "info": {
+    "name": "School Management API",
+    "description": "Collection for the School Management REST API built with Node.js, Express, and MySQL.\n\n**Base URL**: `http://localhost:3000` (change to your deployed URL as needed)\n\n**Endpoints**\n- `POST /addSchool` — Add a new school\n- `GET  /listSchools` — List schools sorted by proximity",
+    "_postman_id": "school-mgmt-api-v1",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000",
+      "type": "string",
+      "description": "Change to your deployed API URL"
+    }
+  ],
+  "item": [
+    {
+      "name": "Health Check",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{baseUrl}}/",
+          "host": ["{{baseUrl}}"],
+          "path": [""]
+        },
+        "description": "Verify the API is running and see available endpoints."
+      },
+      "response": [
+        {
+          "name": "API Running",
+          "status": "OK",
+          "code": 200,
+          "body": "{\n  \"status\": \"ok\",\n  \"message\": \"School Management API is running\",\n  \"version\": \"1.0.0\",\n  \"endpoints\": {\n    \"addSchool\": \"POST /addSchool\",\n    \"listSchools\": \"GET /listSchools?latitude=<lat>&longitude=<lng>\"\n  }\n}"
+        }
+      ]
+    },
+    {
+      "name": "Add School",
+      "item": [
+        {
+          "name": "Add School — Success",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/addSchool",
+              "host": ["{{baseUrl}}"],
+              "path": ["addSchool"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Delhi Public School\",\n  \"address\": \"Sector 45, Noida, Uttar Pradesh 201301\",\n  \"latitude\": 28.5706,\n  \"longitude\": 77.3261\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "description": "Adds a new school. All four fields are required."
+          },
+          "response": [
+            {
+              "name": "201 Created",
+              "status": "Created",
+              "code": 201,
+              "body": "{\n  \"success\": true,\n  \"message\": \"School added successfully\",\n  \"data\": {\n    \"id\": 1,\n    \"name\": \"Delhi Public School\",\n    \"address\": \"Sector 45, Noida, Uttar Pradesh 201301\",\n    \"latitude\": 28.5706,\n    \"longitude\": 77.3261,\n    \"created_at\": \"2025-06-01T10:00:00.000Z\"\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Add School — Missing Fields (422)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/addSchool",
+              "host": ["{{baseUrl}}"],
+              "path": ["addSchool"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Incomplete School\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "description": "Intentionally missing address, latitude, longitude — returns 422 with validation errors."
+          },
+          "response": [
+            {
+              "name": "422 Validation Error",
+              "status": "Unprocessable Entity",
+              "code": 422,
+              "body": "{\n  \"success\": false,\n  \"message\": \"Validation failed\",\n  \"errors\": [\n    { \"field\": \"address\",   \"message\": \"Address is required\" },\n    { \"field\": \"latitude\",  \"message\": \"Latitude is required\" },\n    { \"field\": \"longitude\", \"message\": \"Longitude is required\" }\n  ]\n}"
+            }
+          ]
+        },
+        {
+          "name": "Add School — Invalid Coordinates (422)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/addSchool",
+              "host": ["{{baseUrl}}"],
+              "path": ["addSchool"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Bad Coords School\",\n  \"address\": \"123 Fake Street\",\n  \"latitude\": 999,\n  \"longitude\": -999\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "description": "Latitude and longitude out of valid range — returns 422."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "List Schools",
+      "item": [
+        {
+          "name": "List Schools — Near Noida",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/listSchools?latitude=28.5355&longitude=77.3910",
+              "host": ["{{baseUrl}}"],
+              "path": ["listSchools"],
+              "query": [
+                { "key": "latitude",  "value": "28.5355", "description": "User's latitude (Noida)" },
+                { "key": "longitude", "value": "77.3910", "description": "User's longitude (Noida)" }
+              ]
+            },
+            "description": "Returns all schools sorted by proximity to the given coordinates."
+          },
+          "response": [
+            {
+              "name": "200 OK — Sorted List",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"success\": true,\n  \"count\": 2,\n  \"userLocation\": {\n    \"latitude\": 28.5355,\n    \"longitude\": 77.391\n  },\n  \"data\": [\n    {\n      \"id\": 1,\n      \"name\": \"Delhi Public School\",\n      \"address\": \"Sector 45, Noida, Uttar Pradesh 201301\",\n      \"latitude\": 28.5706,\n      \"longitude\": 77.3261,\n      \"created_at\": \"2025-06-01T10:00:00.000Z\",\n      \"distance_km\": 6.34\n    },\n    {\n      \"id\": 2,\n      \"name\": \"Ryan International School\",\n      \"address\": \"C-37, Sector 31, Noida, UP 201301\",\n      \"latitude\": 28.5742,\n      \"longitude\": 77.341,\n      \"created_at\": \"2025-06-01T10:05:00.000Z\",\n      \"distance_km\": 7.12\n    }\n  ]\n}"
+            }
+          ]
+        },
+        {
+          "name": "List Schools — Missing Params (422)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/listSchools",
+              "host": ["{{baseUrl}}"],
+              "path": ["listSchools"]
+            },
+            "description": "No query params provided — returns 422 validation error."
+          },
+          "response": [
+            {
+              "name": "422 Validation Error",
+              "status": "Unprocessable Entity",
+              "code": 422,
+              "body": "{\n  \"success\": false,\n  \"message\": \"Validation failed\",\n  \"errors\": [\n    { \"field\": \"latitude\",  \"message\": \"Query parameter \\\"latitude\\\" is required\" },\n    { \"field\": \"longitude\", \"message\": \"Query parameter \\\"longitude\\\" is required\" }\n  ]\n}"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
